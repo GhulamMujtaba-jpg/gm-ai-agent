@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Voice Bot Admin</title>
+  <style>
+    body { font-family: Arial; max-width: 900px; margin: 30px auto; }
+    textarea { width: 100%; height: 150px; }
+    button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
+    pre { background: #f4f4f4; padding: 15px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>AI Voice Bot Admin Panel</h1>
+
+  <label>Admin Secret:</label>
+  <input id="secret" type="password" placeholder="Enter admin secret" style="width:100%; padding:8px;" />
+
+  <h3>System Prompt</h3>
+  <textarea id="prompt"></textarea>
+  <br />
+  <button onclick="saveConfig()">Save Prompt</button>
+
+  <h3>Call Logs</h3>
+  <button onclick="loadLogs()">Load Logs</button>
+  <pre id="logs"></pre>
+
+  <script>
+    async function loadConfig() {
+      const secret = document.getElementById("secret").value;
+      const res = await fetch("/admin/config", {
+        headers: { "x-admin-secret": secret }
+      });
+      const data = await res.json();
+      if (data.systemPrompt || data.config?.systemPrompt) {
+        document.getElementById("prompt").value = data.systemPrompt || data.config.systemPrompt;
+      }
+    }
+
+    async function saveConfig() {
+      const secret = document.getElementById("secret").value;
+      const systemPrompt = document.getElementById("prompt").value;
+
+      const res = await fetch("/admin/config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret
+        },
+        body: JSON.stringify({ systemPrompt })
+      });
+
+      const data = await res.json();
+      alert(data.success ? "Saved!" : "Failed");
+    }
+
+    async function loadLogs() {
+      const secret = document.getElementById("secret").value;
+      const res = await fetch("/admin/logs", {
+        headers: { "x-admin-secret": secret }
+      });
+      const data = await res.json();
+      document.getElementById("logs").textContent = JSON.stringify(data, null, 2);
+    }
+
+    document.getElementById("secret").addEventListener("change", loadConfig);
+  </script>
+</body>
+</html>
